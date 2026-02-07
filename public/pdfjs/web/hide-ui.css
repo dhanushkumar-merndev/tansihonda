@@ -1,0 +1,12 @@
+/* Hide all PDF.js UI */
+#toolbarContainer,
+#secondaryToolbar,
+#toolbarSidebar,
+#sidebarContainer {
+  display: none !important;
+}
+
+/* Let PDF fill screen */
+#viewerContainer {
+  top: 0 !important;
+}
