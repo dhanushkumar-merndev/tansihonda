@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useState, useEffect, useRef, useCallback } from "react";
-import { Download, ChevronLeft, FileText, X, ZoomIn, ZoomOut } from "lucide-react";
+import { Download, ChevronLeft, FileText, X, ZoomIn, ZoomOut, Loader2, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface OutlineItem {
@@ -23,6 +23,9 @@ export default function PdfViewer({
   const [outline, setOutline] = useState<OutlineItem[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -85,103 +88,110 @@ export default function PdfViewer({
     resetTimeout();
     const handleInteraction = () => resetTimeout();
 
+    // Reset states for new PDF
+    setCurrentPage(1);
+    setTotalPages(0);
+    setOutline([]);
+    setIsLoading(true);
+    setLoadingProgress(0);
+
     window.addEventListener("mousemove", handleInteraction);
     window.addEventListener("touchstart", handleInteraction);
     window.addEventListener("scroll", handleInteraction);
 
-    const iframe = iframeRef.current;
-    let iframeWindow: Window | null = null;
     let pollingInterval: NodeJS.Timeout | null = null;
-    
-    const setupIframeListeners = () => {
-      try {
-        iframeWindow = iframe?.contentWindow || null;
-        if (iframeWindow) {
-          iframeWindow.addEventListener("mousemove", handleInteraction);
-          iframeWindow.addEventListener("touchstart", handleInteraction);
-          
-          const viewerContainer = iframeWindow.document.getElementById("viewerContainer");
-          if (viewerContainer) {
-            viewerContainer.addEventListener("scroll", handleInteraction);
-          } else {
-            iframeWindow.addEventListener("scroll", handleInteraction);
-          }
+    let listenersAttached = false;
+    let attempts = 0;
 
-          // Polling mechanism
-          let attempts = 0;
-          let listenersAttached = false;
-          pollingInterval = setInterval(async () => {
-            attempts++;
-            // Re-fetch application in case it was null initially
-            const currentApp = (iframeWindow as any)?.PDFViewerApplication;
-            
+    const startPolling = () => {
+      if (pollingInterval) return;
+      
+      pollingInterval = setInterval(async () => {
+        attempts++;
+        try {
+          const iframe = iframeRef.current;
+          const iframeWindow = iframe?.contentWindow as any;
+          if (!iframeWindow) return;
+
+          const currentApp = iframeWindow.PDFViewerApplication;
+          
+            // Attach event bus listeners
             if (currentApp && currentApp.eventBus && !listenersAttached) {
-              currentApp.eventBus.on('pagechanging', (evt: any) => {
-                setCurrentPage(evt.pageNumber);
-                if (currentApp.pagesCount) setTotalPages(currentApp.pagesCount);
+              currentApp.eventBus.on('progress', (evt: any) => {
+                if (evt.total > 0) {
+                  const percent = Math.round((evt.loaded / evt.total) * 100);
+                  setLoadingProgress(percent);
+                }
               });
-              
-              // Immediately set initial page info
-              if (currentApp.pdfDocument) {
-                setTotalPages(currentApp.pagesCount || 0);
-                setCurrentPage(currentApp.page || 1);
-              }
-              
-              listenersAttached = true;
+
+              currentApp.eventBus.on('pagechanging', (evt: any) => {
+              setCurrentPage(evt.pageNumber);
+              if (currentApp.pagesCount) setTotalPages(currentApp.pagesCount);
+            });
+            
+            // Set initial page info if available
+            if (currentApp.pdfDocument) {
+              setTotalPages(currentApp.pagesCount || 0);
+              setCurrentPage(currentApp.page || 1);
+            }
+            
+            // Add interaction listeners to iframe window
+            iframeWindow.addEventListener("mousemove", handleInteraction);
+            iframeWindow.addEventListener("touchstart", handleInteraction);
+            const viewerContainer = iframeWindow.document.getElementById("viewerContainer");
+            if (viewerContainer) {
+              viewerContainer.addEventListener("scroll", handleInteraction);
             }
 
-            const tryExtractData = async () => {
-              if (!currentApp || !currentApp.pdfDocument) return false;
+            listenersAttached = true;
+          }
 
-              // Extract Heading
-              try {
-                const title = currentApp.metadata?.get('dc:title') || currentApp.documentInfo?.Title;
-                if (title && title.trim() && title !== pdfName) {
-                  setHeading(title);
-                }
-              } catch (e) { /* ignore */ }
-
-              // Extract Outline
-              try {
-                const pdfOutline = await currentApp.pdfDocument.getOutline();
-                if (pdfOutline && pdfOutline.length > 0) {
-                  setOutline(pdfOutline);
-                }
-              } catch (e) { /* ignore */ }
-
-              // Update page info immediately when document loads
-              const pagesCount = currentApp.pagesCount || 0;
-              const currentPageNum = currentApp.page || 1;
-              
-              if (pagesCount > 0) {
-                setTotalPages(pagesCount);
-                setCurrentPage(currentPageNum);
-                return true;
+          // Extract Data (Heading, Outline, Pages)
+          if (currentApp && currentApp.pdfDocument) {
+            // Extract Heading
+            try {
+              const title = currentApp.metadata?.get('dc:title') || currentApp.documentInfo?.Title;
+              if (title && title.trim() && title !== pdfName) {
+                setHeading(title);
               }
-              
-              return false;
-            };
+            } catch (e) { /* ignore */ }
 
-            const success = await tryExtractData();
-            if ((success && listenersAttached) || attempts > 60) { // 30 seconds
-              if (pollingInterval) {
-                clearInterval(pollingInterval);
+            // Extract Outline
+            try {
+              const pdfOutline = await currentApp.pdfDocument.getOutline();
+              if (pdfOutline && pdfOutline.length > 0) {
+                setOutline(pdfOutline);
+              }
+            } catch (e) { /* ignore */ }
+
+            // Final sync of page info
+            if (currentApp.pagesCount > 0) {
+              setTotalPages(currentApp.pagesCount);
+              setCurrentPage(currentApp.page || 1);
+              setIsLoading(false);
+              
+              // If we have listeners AND data, we can stop polling
+              if (listenersAttached || attempts > 60) {
+                clearInterval(pollingInterval!);
                 pollingInterval = null;
               }
             }
-          }, 500);
+          }
+        } catch (e) {
+          // Cross-origin or initialization errors - common during early load
+          if (attempts > 60) {
+            clearInterval(pollingInterval!);
+            pollingInterval = null;
+          }
         }
-      } catch (e) {
-        console.warn("Iframe interaction limited", e);
-      }
+      }, 500);
     };
 
+    // Start immediately and also on load as a fallback
+    startPolling();
+    const iframe = iframeRef.current;
     if (iframe) {
-      if (iframe.contentDocument?.readyState === "complete") {
-        setupIframeListeners();
-      } else {
-        iframe.addEventListener("load", setupIframeListeners);
-      }
+      iframe.addEventListener("load", startPolling);
     }
 
     return () => {
@@ -190,14 +200,6 @@ export default function PdfViewer({
       window.removeEventListener("scroll", handleInteraction);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       if (pollingInterval) clearInterval(pollingInterval);
-      
-      if (iframeWindow) {
-        try {
-          iframeWindow.removeEventListener("mousemove", handleInteraction);
-          iframeWindow.removeEventListener("touchstart", handleInteraction);
-          iframeWindow.removeEventListener("scroll", handleInteraction);
-        } catch (e) { /* ignore */ }
-      }
     };
   }, [pdfName]);
 
@@ -239,10 +241,34 @@ export default function PdfViewer({
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background: rgba(255, 255, 255, 0.3);
         }
+        @keyframes pulse-gentle {
+          0%, 100% { opacity: 0.4; transform: scale(1); }
+          50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        .animate-pulse-gentle {
+          animation: pulse-gentle 2s ease-in-out infinite;
+        }
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-100%); }
+        }
+        .marquee-container {
+          overflow: hidden;
+          width: 100%;
+          white-space: nowrap;
+        }
+        .marquee-content {
+          display: inline-block;
+          padding-left: 10%;
+          animation: marquee 10s linear infinite;
+        }
+        .marquee-content:hover {
+          animation-play-state: paused;
+        }
       `}</style>
       
-      {/* Top Bar: Back Button (Left) */}
-      <div className={`absolute top-2 md:top-4 left-4 z-50 transition-all duration-500 ${showControls ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'} md:opacity-100 md:translate-y-0`}>
+      {/* Top Bar: Back Button (Mobile only) */}
+      <div className={`md:hidden absolute top-2 md:top-4 left-4 z-50 transition-all duration-500 ${showControls ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
         <button
           onClick={() => router.back()}
           className="p-2 rounded-full bg-[#2a2a2e] text-white shadow-xl active:scale-95 transition flex items-center justify-center cursor-pointer border border-white/20 hover:bg-white/10"
@@ -252,10 +278,10 @@ export default function PdfViewer({
         </button>
       </div>
 
-      {/* Heading: Centered on Mobile, Next to back button on Desktop */}
-      <div className={`absolute top-4 z-50 transition-all duration-500 flex items-center justify-center left-1/2 -translate-x-1/2 md:left-[70px] md:translate-x-0 ${showControls ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'} md:opacity-100 md:translate-y-0`}>
-        <div className="px-5 py-2 rounded-full bg-[#2a2a2e] border border-white/20 shadow-2xl -mt-1 md:mt-1">
-          <span className="text-white font-bold text-xs md:text-sm tracking-wide truncate max-w-[45vw] md:max-w-[60vw] block">
+      {/* Heading: Centered on Mobile */}
+      <div className={`md:hidden absolute top-4 z-50 transition-all duration-500 flex items-center justify-center left-1/2 -translate-x-1/2 ${showControls ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
+        <div className="px-5 py-2 rounded-full bg-[#2a2a2e] border border-white/20 shadow-2xl -mt-1">
+          <span className="text-white font-bold text-xs tracking-wide truncate max-w-[45vw] block">
             {heading}
           </span>
         </div>
@@ -283,11 +309,10 @@ export default function PdfViewer({
     <Download className="w-6 h-6" />
   </button>
 
-  {/* Topics Button — BELOW on mobile */}
+  {/* Topics Button — Mobile only */}
   <button
     onClick={() => setIsDrawerOpen(true)}
-    className={`order-2 md:order-none
-               p-2 rounded-full bg-[#2a2a2e] text-white shadow-xl
+    className={`md:hidden p-2 rounded-full bg-[#2a2a2e] text-white shadow-xl
                active:scale-95 transition flex items-center justify-center
                cursor-pointer border border-white/20 hover:bg-white/10`}
     title="Show Topics"
@@ -335,23 +360,58 @@ export default function PdfViewer({
 
       )}
 
-      {/* Topics Drawer */}
-      <div className={`fixed inset-y-0 left-0 z-[100] w-full sm:w-[320px] bg-[#2a2a2e] shadow-2xl transition-transform duration-500 ease-in-out border-r border-white/10 ${isDrawerOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="flex flex-col h-full">
-          <div className="p-5 border-b border-white/5 flex items-center justify-between bg-white/5 backdrop-blur-md">
-            <div className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-white/50" />
-              <h2 className="font-bold text-white tracking-wide">Topics</h2>
+      {/* Topics Drawer/Sidebar */}
+      <div className={`fixed inset-y-0 left-0 z-8000 bg-[#2a2a2e] shadow-2xl transition-all duration-500 ease-in-out border-r border-white/10 
+        ${isDrawerOpen ? "translate-x-0" : "-translate-x-full"} 
+        ${isSidebarExpanded ? "md:w-[320px]" : "md:w-[60px] md:overflow-hidden"}
+        md:translate-x-0`}>
+        <div className="flex flex-col h-full overflow-hidden">
+          {/* Header with Back button and Title for Desktop */}
+          <div className={`p-4 border-b border-white/5 bg-white/5 backdrop-blur-md flex flex-col gap-4 ${!isSidebarExpanded && 'md:items-center md:px-2'}`}>
+            <div className={`flex items-center ${isSidebarExpanded ? 'gap-3' : 'md:flex-col md:gap-4'} transition-all duration-300`}>
+              <button
+                onClick={() => router.back()}
+                className="p-1.5 rounded-lg bg-white/5 text-white/70 hover:text-white hover:bg-white/10 transition flex items-center justify-center cursor-pointer border border-white/10"
+                title="Go Back"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              
+              {isSidebarExpanded && (
+                <div className="flex-1 min-w-0 marquee-container mt-0.5">
+                  <div className={`${heading.length > 22 ? 'marquee-content pr-[100%]' : ''} font-bold text-white tracking-wide text-sm`}>
+                    {heading}
+                  </div>
+                </div>
+              )}
+
+              {/* Toggle / Close Buttons */}
+              <div className="flex items-center gap-1">
+                <button 
+                  onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+                  className="hidden md:flex p-1.5 hover:bg-white/10 rounded-lg transition-colors border border-transparent text-white/40 hover:text-white"
+                  title={isSidebarExpanded ? "Collapse Sidebar" : "Expand Sidebar"}
+                >
+                  {isSidebarExpanded ? <ChevronsLeft className="w-4 h-4" /> : <ChevronsRight className="w-4 h-4" />}
+                </button>
+                <button 
+                  onClick={() => setIsDrawerOpen(false)}
+                  className="md:hidden p-1.5 hover:bg-white/10 rounded-lg transition-colors border border-transparent"
+                >
+                  <X className="w-5 h-5 text-white/40" />
+                </button>
+              </div>
             </div>
-            <button 
-              onClick={() => setIsDrawerOpen(false)}
-              className="p-2 hover:bg-white/10 rounded-full transition-colors"
-            >
-              <X className="w-5 h-5 text-white/40" />
-            </button>
+
+            {isSidebarExpanded && (
+              <div className="flex items-center gap-2 px-1">
+                <FileText className="w-4 h-4 text-white/30" />
+                <span className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-medium">Table of Contents</span>
+              </div>
+            )}
           </div>
           
-          <div className="flex-1 overflow-y-auto custom-scrollbar pt-2">
+          <div className={`flex-1 overflow-y-auto custom-scrollbar pt-2 ${!isSidebarExpanded && 'md:hidden'}`}>
             {outline.length > 0 ? (
               itemsRender(outline)
             ) : (
@@ -362,10 +422,12 @@ export default function PdfViewer({
             )}
           </div>
 
-          <div className="p-4 bg-white/5 border-t border-white/5">
-            <p className="text-[9px] text-white/20 uppercase tracking-[0.2em] text-center">
-              Tansi Honda Digital
-            </p>
+          <div className={`p-4 bg-white/5 border-t border-white/5 flex items-center justify-center ${!isSidebarExpanded ? 'md:px-2' : ''}`}>
+            <div className={`flex ${isSidebarExpanded ? 'items-center gap-1' : 'flex-col items-center'} text-center`}>
+              <span className="text-[9px] text-white/20 uppercase tracking-[0.2em] font-medium leading-tight">Tansi</span>
+              <span className="text-[9px] text-white/20 uppercase tracking-[0.2em] font-medium leading-tight">Honda</span>
+              <span className="text-[9px] text-white/20 uppercase tracking-[0.2em] font-medium leading-tight">Digital</span>
+            </div>
           </div>
         </div>
       </div>
@@ -380,13 +442,30 @@ export default function PdfViewer({
 
       {/* PDF viewer */}
       <iframe
-  key={pdfName}
-  ref={iframeRef}
-  src={`/pdfjs/web/viewer.html?file=${encodeURIComponent(proxyUrl)}#pagemode=none`}
-  className="absolute inset-0 w-full h-full border-none z-0"
-  title="PDF Viewer"
-/>
+        key={pdfName}
+        ref={iframeRef}
+        src={`/pdfjs/web/viewer.html?file=${encodeURIComponent(proxyUrl)}#pagemode=none`}
+        className={`absolute inset-y-0 right-0 h-full border-none z-0 transition-all duration-500 
+          ${isSidebarExpanded ? "w-full md:w-[calc(100%-320px)]" : "w-full md:w-[calc(100%-60px)]"}`}
+        title="PDF Viewer"
+      />
 
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="fixed inset-0 z-50 bg-[#2a2a2e] flex items-center justify-center backdrop-blur-sm">
+          <div className="relative">
+            <Loader2 className="w-10 h-10 text-white/20 animate-spin" />
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        @keyframes loading-bar {
+          0% { width: 0%; transform: translateX(-100%); }
+          50% { width: 70%; transform: translateX(20%); }
+          100% { width: 100%; transform: translateX(110%); }
+        }
+      `}</style>
     </div>
   );
 }

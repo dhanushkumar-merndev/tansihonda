@@ -41,7 +41,7 @@ export default function Ev() {
             <Link
               href="/pdf/ev/honda-activa-e.pdf"
               onMouseEnter={() => prefetch("ev/honda-activa-e.pdf")}
-              className="relative w-[80vw] md:w-[45vw] max-w-[600px]
+              className="relative w-[85vw] md:w-[45vw] max-w-[600px]
                          h-[30dvh] lg:h-[360px]
                          bg-white rounded-2xl shadow-2xl overflow-hidden group
                          transition-transform duration-300"
@@ -56,9 +56,8 @@ export default function Ev() {
               />
 
               <div
-                className="absolute bottom-4 right-4 w-12 h-12 rounded-full bg-white
-                           shadow-lg flex items-center justify-center
-                           group-hover:bg-blue-50 transition-colors"
+                className="absolute bottom-0 right-0 w-12 h-12 rounded-full
+                           flex items-center justify-center"
               >
                 <Image src="/click.svg" alt="Open" width={24} height={24} />
               </div>
@@ -68,7 +67,7 @@ export default function Ev() {
             <Link
               href="/pdf/ev/honda-qc1.pdf"
               onMouseEnter={() => prefetch("ev/honda-qc1.pdf")}
-              className="relative w-[80vw] md:w-[45vw] max-w-[600px]
+              className="relative w-[85vw] md:w-[45vw] max-w-[600px]
                          h-[30dvh] lg:h-[360px]
                          bg-white rounded-2xl shadow-2xl overflow-hidden group
                          transition-transform duration-300"
@@ -82,9 +81,8 @@ export default function Ev() {
               />
 
               <div
-                className="absolute bottom-4 right-4 w-12 h-12 rounded-full bg-white
-                           shadow-lg flex items-center justify-center
-                           group-hover:bg-blue-50 transition-colors"
+                className="absolute bottom-0 right-0 w-12 h-12 rounded-full
+                           flex items-center justify-center"
               >
                 <Image src="/click.svg" alt="Open" width={24} height={24} />
               </div>

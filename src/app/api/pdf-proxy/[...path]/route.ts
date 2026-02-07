@@ -1,52 +1,83 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
 ) {
   const { path } = await params;
+
   const { searchParams } = new URL(request.url);
-  const isDownload = searchParams.get('download') === '1';
-  const pdfPath = path.join('/');
+  const isDownload = searchParams.get("download") === "1";
+
+  const pdfPath = path.join("/");
+  const baseUrl =
+    process.env.NEXT_PUBLIC_PDF_BASE_URL ??
+    "https://tansihondamanuals.t3.storage.dev";
+
+  const pdfUrl = `${baseUrl}/${pdfPath}`;
+
+  // Forward validation and range headers
+  const upstreamHeaders: Record<string, string> = {};
+  const range = request.headers.get("range");
+  const ifNoneMatch = request.headers.get("if-none-match");
+  const ifModifiedSince = request.headers.get("if-modified-since");
+
+  if (range) upstreamHeaders["Range"] = range;
+  if (ifNoneMatch) upstreamHeaders["If-None-Match"] = ifNoneMatch;
+  if (ifModifiedSince) upstreamHeaders["If-Modified-Since"] = ifModifiedSince;
+
+  const upstream = await fetch(pdfUrl, {
+    headers: upstreamHeaders,
+    cache: "no-store", // Bypass Next.js 2MB cache limit
+  });
+
+  // Handle errors (allow 304 and 206)
+  if (!upstream.ok && upstream.status !== 206 && upstream.status !== 304) {
+    return new NextResponse("Failed to fetch PDF", {
+      status: upstream.status,
+    });
+  }
+
+  const headers = new Headers();
   
-  const baseUrl = process.env.NEXT_PUBLIC_PDF_BASE_URL || "https://tansihondamanuals.t3.storage.dev";
-  const pdfUrl = encodeURI(`${baseUrl}/${pdfPath}`);
+  // Passthrough critical headers from storage
+  const passthroughHeaders = [
+    "content-type",
+    "content-length",
+    "content-range",
+    "accept-ranges",
+    "etag",
+    "last-modified",
+  ];
 
-  try {
-    const response = await fetch(pdfUrl);
-    
-    if (!response.ok) {
-      return new NextResponse(`Failed to fetch PDF: ${response.statusText}`, { status: response.status });
-    }
+  passthroughHeaders.forEach(h => {
+    const val = upstream.headers.get(h);
+    if (val) headers.set(h, val);
+  });
 
-    const filename = pdfPath.split('/').pop();
-    const disposition = isDownload ? 'attachment' : 'inline';
-    
-    const headers = new Headers();
-    headers.set('Content-Type', 'application/pdf');
-    headers.set('Content-Disposition', `${disposition}; filename="${filename}"`);
-    headers.set('X-Content-Type-Options', 'nosniff');
-    
-    // CORS Headers
-    headers.set('Access-Control-Allow-Origin', '*');
-    headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    headers.set('Access-Control-Allow-Headers', 'Content-Type, Range');
-    headers.set('Access-Control-Expose-Headers', 'Content-Length, Content-Range');
-    
-    // Add Content-Length if available to help browser trust the stream
-    const contentLength = response.headers.get('content-length');
-    if (contentLength) {
-      headers.set('Content-Length', contentLength);
-    }
+  // CORS and Cache Headers
+  headers.set("Access-Control-Allow-Origin", "*");
+  headers.set("Access-Control-Expose-Headers", "Content-Range, ETag, Content-Length, Accept-Ranges");
+  headers.set("Vary", "Range, Accept-Encoding");
+  headers.set("Cache-Control", "public, max-age=31536000, immutable");
 
-    // Highly aggressive caching
-    headers.set('Cache-Control', 'public, max-age=2592000, s-maxage=31536000, immutable, stale-while-revalidate=86400');
-
-    return new NextResponse(response.body, {
+  // Handle 304 Not Modified explicitly
+  if (upstream.status === 304) {
+    return new NextResponse(null, {
+      status: 304,
       headers,
     });
-  } catch (error) {
-    console.error('Error proxying PDF:', error);
-    return new NextResponse('Error fetching PDF', { status: 500 });
   }
+
+  // Inline vs Download
+  const filename = path[path.length - 1] ?? "file.pdf";
+  headers.set(
+    "Content-Disposition",
+    `${isDownload ? "attachment" : "inline"}; filename="${filename}"`
+  );
+
+  return new NextResponse(upstream.body, {
+    status: upstream.status,
+    headers,
+  });
 }
