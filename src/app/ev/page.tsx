@@ -48,7 +48,7 @@ export default function Ev() {
                          transition-transform duration-300"
             >
               <Image
-                src="/ev/E.png"
+                src="/ev/E.webp"
                 alt="Honda Activa Electric"
                 fill
                 className="object-contain mt-1 scale-80 lg:scale-95
@@ -76,7 +76,7 @@ export default function Ev() {
                          transition-transform duration-300"
             >
               <Image
-                src="/ev/q.png"
+                src="/ev/q.webp"
                 alt="Honda EM1 e:"
                 fill
                 className="object-contain scale-80 lg:scale-95

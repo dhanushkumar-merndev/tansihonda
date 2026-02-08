@@ -4,26 +4,26 @@ import Image from "next/image";
 
 const images = [
   // Scooters
-  "/scooter/dio110.png",
-  "/scooter/activa110.png",
-  "/scooter/activa125.png",
-  "/scooter/dio125.png",
+  "/scooter/dio110.webp",
+  "/scooter/activa110.webp",
+  "/scooter/activa125.webp",
+  "/scooter/dio125.webp",
   
   // Motorcycles
-  "/motorcycle/cb125hornet.png",
-  "/motorcycle/Hornet2.0.png",
-  "/motorcycle/livo.png",
-  "/motorcycle/nx200.png",
-  "/motorcycle/shine100.png",
-  "/motorcycle/shine100dx.png",
-  "/motorcycle/shine125.png",
-  "/motorcycle/sp125.png",
-  "/motorcycle/sp160.png",
-  "/motorcycle/unicorn.png",
+  "/motorcycle/cb125hornet.webp",
+  "/motorcycle/Hornet2.0.webp",
+  "/motorcycle/livo.webp",
+  "/motorcycle/nx200.webp",
+  "/motorcycle/shine100.webp",
+  "/motorcycle/shine100dx.webp",
+  "/motorcycle/shine125.webp",
+  "/motorcycle/sp125.webp",
+  "/motorcycle/sp160.webp",
+  "/motorcycle/unicorn.webp",
 
   // EVs
-  "/ev/E.png",
-  "/ev/q.png",
+  "/ev/E.webp",
+  "/ev/q.webp",
 
   // Static Content (Logos, Icons, SVGs)
   "/logo.svg",
@@ -32,18 +32,19 @@ const images = [
   "/ev/EV Honda.svg",
 
   // Contacts
-  "/contacts/Gunjur.png",
-  "/contacts/Hoodi.png",
-  "/contacts/Marathahalli.png",
-  "/contacts/Panathur.png",
-  "/contacts/Sale.png",
-  "/contacts/Seegehalli.png",
-  "/contacts/Service.png",
-  "/contacts/Tansi Honda.png",
-  "/contacts/White line.png",
-  "/contacts/Whitefield1.png",
-  "/contacts/number.png",
-  "/contacts/tansi.png"
+  "/contacts/Gunjur.webp",
+  "/contacts/Hoodi.webp",
+  "/contacts/Marathahalli.webp",
+  "/contacts/Panathur.webp",
+  "/contacts/Sale.webp",
+  "/contacts/Seegehalli.webp",
+  "/contacts/Service.webp",
+  "/contacts/Tansi Honda.webp",
+  "/contacts/White line.webp",
+  "/contacts/Whitefield1.webp",
+  "/contacts/number.webp",
+  "/contacts/tansi.webp"
+
 ];
 
 export function ImagePreloader() {

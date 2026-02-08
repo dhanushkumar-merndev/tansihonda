@@ -38,16 +38,16 @@ export default function Motorcycle() {
 
             {/* CARD TEMPLATE */}
             {[
-              { img: "/motorcycle/cb125hornet.png", alt: "cb125hornet" },
-              { img: "/motorcycle/Hornet2.0.png", alt: "hornet2.0" },
-              { img: "/motorcycle/livo.png", alt: "livo" },
-              { img: "/motorcycle/nx200.png", alt: "nx200" },
-              { img: "/motorcycle/shine100.png", alt: "shine100" },
-              { img: "/motorcycle/shine100dx.png", alt: "shine100-dx" },
-              { img: "/motorcycle/shine125.png", alt: "shine125" },
-              { img: "/motorcycle/sp125.png", alt: "sp125" },
-              { img: "/motorcycle/sp160.png", alt: "sp160" },
-              { img: "/motorcycle/unicorn.png", alt: "unicorn" },
+              { img: "/motorcycle/cb125hornet.webp", alt: "cb125hornet" },
+              { img: "/motorcycle/Hornet2.0.webp", alt: "hornet2.0" },
+              { img: "/motorcycle/livo.webp", alt: "livo" },
+              { img: "/motorcycle/nx200.webp", alt: "nx200" },
+              { img: "/motorcycle/shine100.webp", alt: "shine100" },
+              { img: "/motorcycle/shine100dx.webp", alt: "shine100-dx" },
+              { img: "/motorcycle/shine125.webp", alt: "shine125" },
+              { img: "/motorcycle/sp125.webp", alt: "sp125" },
+              { img: "/motorcycle/sp160.webp", alt: "sp160" },
+              { img: "/motorcycle/unicorn.webp", alt: "unicorn" },
             ].map((card, i) => {
               const pdfPath = `pdf/motorcycle/${`honda-${card.alt}`}.pdf`;
               return (
