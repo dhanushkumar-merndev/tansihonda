@@ -361,10 +361,18 @@ export default function PdfViewer({
       )}
 
       {/* Topics Drawer/Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-8000 bg-[#2a2a2e] shadow-2xl transition-all duration-500 ease-in-out border-r border-white/10 
-        ${isDrawerOpen ? "translate-x-0" : "-translate-x-full"} 
-        ${isSidebarExpanded ? "md:w-[320px]" : "md:w-[60px] md:overflow-hidden"}
-        md:translate-x-0`}>
+      <div
+  className={`fixed inset-y-0 left-0 z-8000 bg-[#2a2a2e] shadow-2xl
+  transition-all duration-500 ease-in-out border-r border-white/10
+  ${isDrawerOpen ? "translate-x-0" : "-translate-x-full"}
+
+  w-[80vw] max-w-[360px]        /* ✅ MOBILE WIDTH */
+  sm:w-[70vw]
+
+  ${isSidebarExpanded ? "md:w-[300px]" : "md:w-[60px] md:overflow-hidden"}
+  md:translate-x-0`}
+>
+
         <div className="flex flex-col h-full overflow-hidden">
           {/* Header with Back button and Title for Desktop */}
           <div className={`p-4 border-b border-white/5 bg-white/5 backdrop-blur-md flex flex-col gap-4 ${!isSidebarExpanded && 'md:items-center md:px-2'}`}>

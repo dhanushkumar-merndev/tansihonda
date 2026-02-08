@@ -8,6 +8,7 @@ import { useCallback, useRef } from 'react';
  */
 export function usePdfPrefetch() {
   const prefetchedUrls = useRef<Set<string>>(new Set());
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const prefetch = useCallback((path: string) => {
     const proxyUrl = `/api/pdf-proxy/${path}`;
@@ -15,14 +16,27 @@ export function usePdfPrefetch() {
     // Only prefetch once per session per URL
     if (prefetchedUrls.current.has(proxyUrl)) return;
 
-    // Use low priority fetch for prefetching
-    fetch(proxyUrl, { priority: 'low' })
-      .then(() => {
-        prefetchedUrls.current.add(proxyUrl);
-        console.log(`Prefetched: ${proxyUrl}`);
-      })
-      .catch((err) => console.warn(`Prefetch failed for ${proxyUrl}`, err));
+    // Clear any pending prefetch
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+    // Debounce: Wait 500ms before fetching
+    timeoutRef.current = setTimeout(() => {
+      // Use low priority fetch for prefetching
+      fetch(proxyUrl, { priority: 'low' })
+        .then(() => {
+          prefetchedUrls.current.add(proxyUrl);
+          console.log(`Prefetched: ${proxyUrl}`);
+        })
+        .catch((err) => console.warn(`Prefetch failed for ${proxyUrl}`, err));
+    }, 500);
   }, []);
 
-  return { prefetch };
+  const cancelPrefetch = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }, []);
+
+  return { prefetch, cancelPrefetch };
 }

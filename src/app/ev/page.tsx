@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePdfPrefetch } from "@/hooks/use-pdf-prefetch";
 
 export default function Ev() {
-  const { prefetch } = usePdfPrefetch();
+  const { prefetch, cancelPrefetch } = usePdfPrefetch();
 
   return (
     <div className="min-h-dvh bg-white">
@@ -13,9 +13,9 @@ export default function Ev() {
 
         {/* TOP WHITE AREA */}
         <div className="absolute top-0 left-0 w-full h-[12dvh] bg-white z-10">
-          <Link href="/">
+          <Link href="/" className="relative w-full h-full block">
             <Image
-              src="/EV Honda.svg"
+              src="/ev/EV Honda.svg"
               alt="Logo"
               fill
               className="object-contain scale-80 mt-7 md:scale-45 md:mt-0 object-top"
@@ -41,17 +41,19 @@ export default function Ev() {
             <Link
               href="/pdf/ev/honda-activa-e.pdf"
               onMouseEnter={() => prefetch("ev/honda-activa-e.pdf")}
+              onMouseLeave={cancelPrefetch}
               className="relative w-[85vw] md:w-[45vw] max-w-[600px]
                          h-[30dvh] lg:h-[360px]
                          bg-white rounded-2xl shadow-2xl overflow-hidden group
                          transition-transform duration-300"
             >
               <Image
-                src="/E.png"
+                src="/ev/E.png"
                 alt="Honda Activa Electric"
                 fill
                 className="object-contain mt-1 scale-80 lg:scale-95
                            group-hover:scale-100 transition-transform duration-500"
+                sizes="(max-width: 768px) 85vw, 45vw"
                 priority
               />
 
@@ -59,7 +61,7 @@ export default function Ev() {
                 className="absolute bottom-0 right-0 w-12 h-12 rounded-full
                            flex items-center justify-center"
               >
-                <Image src="/click.svg" alt="Open" width={24} height={24} />
+                <Image src="/click.svg" alt="Open" width={24} height={24} className="w-6 h-6" />
               </div>
             </Link>
 
@@ -67,24 +69,27 @@ export default function Ev() {
             <Link
               href="/pdf/ev/honda-qc1.pdf"
               onMouseEnter={() => prefetch("ev/honda-qc1.pdf")}
+              onMouseLeave={cancelPrefetch}
               className="relative w-[85vw] md:w-[45vw] max-w-[600px]
                          h-[30dvh] lg:h-[360px]
                          bg-white rounded-2xl shadow-2xl overflow-hidden group
                          transition-transform duration-300"
             >
               <Image
-                src="/q.png"
+                src="/ev/q.png"
                 alt="Honda EM1 e:"
                 fill
                 className="object-contain scale-80 lg:scale-95
                            group-hover:scale-100 transition-transform duration-500"
+                sizes="(max-width: 768px) 85vw, 45vw"
+                priority={true}
               />
 
               <div
                 className="absolute bottom-0 right-0 w-12 h-12 rounded-full
                            flex items-center justify-center"
               >
-                <Image src="/click.svg" alt="Open" width={24} height={24} />
+                <Image src="/click.svg" alt="Open" width={24} height={24} className="w-6 h-6" />
               </div>
             </Link>
           </div>
