@@ -81,3 +81,50 @@ export async function GET(
     headers,
   });
 }
+
+export async function HEAD(
+  request: NextRequest,
+  { params }: { params: Promise<{ path: string[] }> }
+) {
+  const { path } = await params;
+  const pdfPath = path.join("/");
+  const baseUrl =
+    process.env.NEXT_PUBLIC_PDF_BASE_URL ??
+    "https://tansihondamanuals.t3.storage.dev";
+
+  const pdfUrl = `${baseUrl}/${pdfPath}`;
+
+  try {
+    const upstream = await fetch(pdfUrl, {
+      method: "HEAD",
+      cache: "no-store",
+    });
+
+    const headers = new Headers();
+    const passthroughHeaders = [
+      "content-type",
+      "content-length",
+      "content-range",
+      "accept-ranges",
+      "etag",
+      "last-modified",
+    ];
+
+    passthroughHeaders.forEach((h) => {
+      const val = upstream.headers.get(h);
+      if (val) headers.set(h, val);
+    });
+
+    // CORS and Cache Headers
+    headers.set("Access-Control-Allow-Origin", "*");
+    headers.set("Access-Control-Expose-Headers", "Content-Range, ETag, Content-Length, Accept-Ranges");
+    headers.set("Cache-Control", "public, max-age=31536000, immutable");
+
+    return new NextResponse(null, {
+      status: upstream.status,
+      headers,
+    });
+  } catch (error) {
+    return new NextResponse("Failed to fetch PDF headers", { status: 500 });
+  }
+}

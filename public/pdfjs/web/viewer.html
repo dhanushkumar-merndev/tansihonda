@@ -34,6 +34,16 @@ See https://github.com/adobe-type-tools/cmap-resources
     <link rel="stylesheet" href="viewer.css" />
 <link rel="stylesheet" href="hide-ui.css" />
 
+  <script>
+    // Configure PDF.js for instant loading (Range Requests)
+    window.PDFViewerApplicationOptions = {
+        disableAutoFetch: true,      // Prevent downloading the whole file
+        disableStream: true,         // Force XHR Range Requests
+        rangeChunkSize: 1048576,     // 1MB chunks (Balanced: Fewer requests, still fast)
+        cMapUrl: 'cmaps/',           // Ensure cmaps are loaded correctly
+        cMapPacked: true,
+    };
+  </script>
   <script src="viewer.mjs" type="module"></script>
   </head>
 

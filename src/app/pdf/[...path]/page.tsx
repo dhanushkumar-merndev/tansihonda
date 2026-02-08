@@ -132,7 +132,7 @@ export default function PdfViewer({
 
           const currentApp = iframeWindow.PDFViewerApplication;
           
-            // Attach event bus listeners
+          // Attach event bus listeners
             if (currentApp && currentApp.eventBus && !listenersAttached) {
               currentApp.eventBus.on('progress', (evt: any) => {
                 if (evt.total > 0) {
@@ -141,77 +141,87 @@ export default function PdfViewer({
                 }
               });
 
+              currentApp.eventBus.on('pagesinit', () => {
+                // PDF structure is ready, hide loader immediately for "instant" feel
+                setIsLoading(false);
+                setTotalPages(currentApp.pagesCount);
+                setCurrentPage(currentApp.page || 1);
+              });
+
               currentApp.eventBus.on('pagechanging', (evt: any) => {
-              setCurrentPage(evt.pageNumber);
-              if (currentApp.pagesCount) setTotalPages(currentApp.pagesCount);
-            });
+                setCurrentPage(evt.pageNumber);
+                if (currentApp.pagesCount) setTotalPages(currentApp.pagesCount);
+              });
             
-            // Set initial page info if available
-            if (currentApp.pdfDocument) {
-              setTotalPages(currentApp.pagesCount || 0);
-              setCurrentPage(currentApp.page || 1);
-            }
+              // Set initial page info if available
+              if (currentApp.pdfDocument) {
+                setTotalPages(currentApp.pagesCount || 0);
+                setCurrentPage(currentApp.page || 1);
+                
+                // If we have pages, we can stop loading
+                if (currentApp.pagesCount > 0) setIsLoading(false);
+              }
             
-            // Add interaction listeners to iframe window
-            iframeWindow.addEventListener("mousemove", handleInteraction);
-            iframeWindow.addEventListener("touchstart", handleInteraction);
-            const viewerContainer = iframeWindow.document.getElementById("viewerContainer");
-            if (viewerContainer) {
-              viewerContainer.addEventListener("scroll", handleInteraction);
-            }
+              // Add interaction listeners to iframe window
+              iframeWindow.addEventListener("mousemove", handleInteraction);
+              iframeWindow.addEventListener("touchstart", handleInteraction);
+              const viewerContainer = iframeWindow.document.getElementById("viewerContainer");
+              if (viewerContainer) {
+                viewerContainer.addEventListener("scroll", handleInteraction);
+              }
 
-            listenersAttached = true;
-          }
+              listenersAttached = true;
+            }
           
-          if (currentApp && currentApp.eventBus) {
-             currentApp.eventBus.on('error', (evt: any) => {
-               console.error("PDF.js specific error", evt);
-               // Don't immediately hide loading, but show reload option
-               setShowReload(true);
-             });
-          }
+            if (currentApp && currentApp.eventBus) {
+               currentApp.eventBus.on('error', (evt: any) => {
+                 console.error("PDF.js specific error", evt);
+                 // Don't immediately hide loading, but show reload option
+                 setShowReload(true);
+               });
+            }
 
-          // Extract Data (Heading, Outline, Pages)
-          if (currentApp && currentApp.pdfDocument) {
-            // Extract Heading
-            try {
-              const title = currentApp.metadata?.get('dc:title') || currentApp.documentInfo?.Title;
-              if (title && title.trim() && title !== pdfName) {
-                setHeading(title);
-              }
-            } catch (e) { /* ignore */ }
+            // Extract Data (Heading, Outline, Pages)
+            if (currentApp && currentApp.pdfDocument) {
+              // Extract Heading
+              try {
+                const title = currentApp.metadata?.get('dc:title') || currentApp.documentInfo?.Title;
+                if (title && title.trim() && title !== pdfName) {
+                  setHeading(title);
+                }
+              } catch (e) { /* ignore */ }
 
-            // Extract Outline
-            try {
-              const pdfOutline = await currentApp.pdfDocument.getOutline();
-              if (pdfOutline && pdfOutline.length > 0) {
-                setOutline(pdfOutline);
-              }
-            } catch (e) { /* ignore */ }
+              // Extract Outline
+              try {
+                const pdfOutline = await currentApp.pdfDocument.getOutline();
+                if (pdfOutline && pdfOutline.length > 0) {
+                  setOutline(pdfOutline);
+                }
+              } catch (e) { /* ignore */ }
 
-            // Final sync of page info
-            if (currentApp.pagesCount > 0) {
-              setTotalPages(currentApp.pagesCount);
-              setCurrentPage(currentApp.page || 1);
-              setIsLoading(false);
-              setShowReload(false);
-              
-              // If we have listeners AND data, we can stop polling
-              if (listenersAttached || attempts > 240) { // Increased timeout (2 mins)
-                clearInterval(pollingInterval!);
-                pollingInterval = null;
+              // Final sync of page info
+              if (currentApp.pagesCount > 0) {
+                setTotalPages(currentApp.pagesCount);
+                setCurrentPage(currentApp.page || 1);
+                setIsLoading(false);
+                setShowReload(false);
+                
+                // If we have listeners AND data, we can stop polling
+                if (listenersAttached || attempts > 1200) { // Increased checks (approx 2 mins)
+                  clearInterval(pollingInterval!);
+                  pollingInterval = null;
+                }
               }
             }
+          } catch (e) {
+            // Cross-origin or initialization errors - common during early load
+            if (attempts > 1200) { // Increased checks
+              clearInterval(pollingInterval!);
+              pollingInterval = null;
+              setShowReload(true);
+            }
           }
-        } catch (e) {
-          // Cross-origin or initialization errors - common during early load
-          if (attempts > 240) { // Increased timeout (2 mins)
-            clearInterval(pollingInterval!);
-            pollingInterval = null;
-            setShowReload(true);
-          }
-        }
-      }, 500);
+        }, 100); // Check every 100ms for faster feedback
     };
 
     // Start immediately and also on load as a fallback
