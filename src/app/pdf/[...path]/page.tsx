@@ -32,6 +32,8 @@ export default function PdfViewer({
   const pdfName = path.map(decodeURIComponent).join("/");
   const proxyUrl = `/api/pdf-proxy/${pdfName}`;
 
+  const [showReload, setShowReload] = useState(false);
+
   // Default heading from filename
   useEffect(() => {
     const nameOnly = pdfName.split('/').pop()?.replace('.pdf', '').replace(/-/g, ' ') || "";
@@ -84,6 +86,14 @@ export default function PdfViewer({
     }
   };
 
+  const handleReload = () => {
+    setIsLoading(true);
+    setShowReload(false);
+    if (iframeRef.current) {
+      iframeRef.current.src = iframeRef.current.src; // Reload iframe
+    }
+  };
+
   useEffect(() => {
     resetTimeout();
     const handleInteraction = () => resetTimeout();
@@ -94,14 +104,21 @@ export default function PdfViewer({
     setOutline([]);
     setIsLoading(true);
     setLoadingProgress(0);
+    setShowReload(false);
 
     window.addEventListener("mousemove", handleInteraction);
     window.addEventListener("touchstart", handleInteraction);
     window.addEventListener("scroll", handleInteraction);
 
     let pollingInterval: NodeJS.Timeout | null = null;
+    let reloadTimer: NodeJS.Timeout | null = null;
     let listenersAttached = false;
     let attempts = 0;
+
+    // Show reload option if loading takes too long
+    reloadTimer = setTimeout(() => {
+      if (isLoading) setShowReload(true);
+    }, 10000); // 10 seconds
 
     const startPolling = () => {
       if (pollingInterval) return;
@@ -145,6 +162,14 @@ export default function PdfViewer({
 
             listenersAttached = true;
           }
+          
+          if (currentApp && currentApp.eventBus) {
+             currentApp.eventBus.on('error', (evt: any) => {
+               console.error("PDF.js specific error", evt);
+               // Don't immediately hide loading, but show reload option
+               setShowReload(true);
+             });
+          }
 
           // Extract Data (Heading, Outline, Pages)
           if (currentApp && currentApp.pdfDocument) {
@@ -169,9 +194,10 @@ export default function PdfViewer({
               setTotalPages(currentApp.pagesCount);
               setCurrentPage(currentApp.page || 1);
               setIsLoading(false);
+              setShowReload(false);
               
               // If we have listeners AND data, we can stop polling
-              if (listenersAttached || attempts > 60) {
+              if (listenersAttached || attempts > 240) { // Increased timeout (2 mins)
                 clearInterval(pollingInterval!);
                 pollingInterval = null;
               }
@@ -179,9 +205,10 @@ export default function PdfViewer({
           }
         } catch (e) {
           // Cross-origin or initialization errors - common during early load
-          if (attempts > 60) {
+          if (attempts > 240) { // Increased timeout (2 mins)
             clearInterval(pollingInterval!);
             pollingInterval = null;
+            setShowReload(true);
           }
         }
       }, 500);
@@ -200,6 +227,7 @@ export default function PdfViewer({
       window.removeEventListener("scroll", handleInteraction);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       if (pollingInterval) clearInterval(pollingInterval);
+      if (reloadTimer) clearTimeout(reloadTimer);
     };
   }, [pdfName]);
 
@@ -300,7 +328,7 @@ export default function PdfViewer({
       const downloadUrl = new URL(`${proxyUrl}?download=1`, window.location.origin).href;
       window.location.assign(downloadUrl);
     }}
-    className={`order-1 md:order-none
+    className={`order-1 md:order-0
                p-2 rounded-full bg-[#2a2a2e] text-white shadow-xl
                active:scale-95 transition flex items-center justify-center
                cursor-pointer border border-white/20 hover:bg-white/10`}
@@ -443,7 +471,7 @@ export default function PdfViewer({
       {/* Drawer Overlay */}
       {isDrawerOpen && (
         <div 
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[90] transition-opacity duration-500"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-90 transition-opacity duration-500"
           onClick={() => setIsDrawerOpen(false)}
         />
       )}
@@ -460,10 +488,21 @@ export default function PdfViewer({
 
       {/* Loading Overlay */}
       {isLoading && (
-        <div className="fixed inset-0 z-50 bg-[#2a2a2e] flex items-center justify-center backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 bg-[#2a2a2e] flex flex-col items-center justify-center backdrop-blur-sm gap-4">
           <div className="relative">
             <Loader2 className="w-10 h-10 text-white/20 animate-spin" />
           </div>
+          <p className="text-white/50 text-sm animate-pulse">Loading Document...</p>
+          
+          {showReload && (
+            <button
+              onClick={handleReload}
+              className="mt-4 px-6 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-all border border-white/10 flex items-center gap-2"
+            >
+              <FileText className="w-4 h-4" />
+              Reload Viewer
+            </button>
+          )}
         </div>
       )}
 
