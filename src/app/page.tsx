@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { ImagePreloader } from "@/components/ImagePreloader";
 
 export default function Home() {
   const redOutlineBtn =
@@ -19,7 +20,7 @@ export default function Home() {
 
   return (
    <div className="flex min-h-dvh items-center justify-center bg-zinc-50 -mt-[4vh]">
-
+      <ImagePreloader />
       <div className="flex flex-col items-center justify-center">
 
         {/* Logo */}
