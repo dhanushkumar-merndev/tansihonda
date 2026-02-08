@@ -43,7 +43,7 @@ export default function Motorcycle() {
               { img: "/motorcycle/livo.png", alt: "livo" },
               { img: "/motorcycle/nx200.png", alt: "nx200" },
               { img: "/motorcycle/shine100.png", alt: "shine100" },
-              { img: "/motorcycle/shine100dx.png", alt: "shine100dx" },
+              { img: "/motorcycle/shine100dx.png", alt: "shine100-dx" },
               { img: "/motorcycle/shine125.png", alt: "shine125" },
               { img: "/motorcycle/sp125.png", alt: "sp125" },
               { img: "/motorcycle/sp160.png", alt: "sp160" },
