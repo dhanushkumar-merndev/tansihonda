@@ -25,9 +25,8 @@ export function usePdfPrefetch() {
       fetch(proxyUrl, { priority: 'low' })
         .then(() => {
           prefetchedUrls.current.add(proxyUrl);
-          console.log(`Prefetched: ${proxyUrl}`);
         })
-        .catch((err) => console.warn(`Prefetch failed for ${proxyUrl}`, err));
+        .catch(() => {});
     }, 500);
   }, []);
 
