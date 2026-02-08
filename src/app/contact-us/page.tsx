@@ -43,7 +43,7 @@ export default function Scooter() {
               <Image src="/contacts/Hoodi.png" alt="Hoodi - Call 7259030091" fill className="object-contain" />
             </Link>
             <Link href="tel:9686573013" className="relative w-full h-[60px] md:h-[80px] hover:scale-105 transition-transform">
-              <Image src="/contacts/Whitefield.png" alt="Whitefield - Call 9686573013" fill className="object-contain" />
+              <Image src="/contacts/Whitefield1.png" alt="Whitefield - Call 9686573013" fill className="object-contain" />
             </Link>
             <Link href="tel:7259030100" className="relative w-full h-[60px] md:h-[80px] hover:scale-105 transition-transform">
               <Image src="/contacts/Marathahalli.png" alt="Marathahalli - Call 7259030100" fill className="object-contain" />
