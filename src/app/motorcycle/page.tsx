@@ -49,12 +49,12 @@ export default function Motorcycle() {
               { img: "/motorcycle/sp160.png", alt: "sp160" },
               { img: "/motorcycle/unicorn.png", alt: "unicorn" },
             ].map((card, i) => {
-              const pdfPath = `motorcycle/${`honda-${card.alt}`}.pdf`;
+              const pdfPath = `pdf/motorcycle/${`honda-${card.alt}`}.pdf`;
               return (
               <Link
                   key={i}
-                  href={`/pdf/${pdfPath}`}
-                  onMouseEnter={() => prefetch(pdfPath)}
+                  href={`/pdf/${pdfPath.replace('pdf/', '')}`}
+                  onMouseEnter={() => prefetch(pdfPath.replace('pdf/', 'docs/'))}
                   className={`relative group
                            w-[85vw] md:w-[28vw] lg:w-[17vw]
                            h-[22vh] md:h-[24vh] lg:h-[240px]

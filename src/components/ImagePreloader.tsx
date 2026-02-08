@@ -23,7 +23,27 @@ const images = [
 
   // EVs
   "/ev/E.png",
-  "/ev/q.png"
+  "/ev/q.png",
+
+  // Static Content (Logos, Icons, SVGs)
+  "/logo.svg",
+  "/th.svg",
+  "/click.svg",
+  "/ev/EV Honda.svg",
+
+  // Contacts
+  "/contacts/Gunjur.png",
+  "/contacts/Hoodi.png",
+  "/contacts/Marathahalli.png",
+  "/contacts/Panathur.png",
+  "/contacts/Sale.png",
+  "/contacts/Seegehalli.png",
+  "/contacts/Service.png",
+  "/contacts/Tansi Honda.png",
+  "/contacts/White line.png",
+  "/contacts/Whitefield1.png",
+  "/contacts/number.png",
+  "/contacts/tansi.png"
 ];
 
 export function ImagePreloader() {

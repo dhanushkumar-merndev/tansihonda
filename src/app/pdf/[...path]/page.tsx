@@ -26,26 +26,27 @@ export default function PdfViewer({
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<number | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  const pdfName = path.map(decodeURIComponent).join("/");
-  const proxyUrl = `/api/pdf-proxy/${pdfName}`;
+  const pdfPath = path.map(decodeURIComponent).join("/");
+  // POINT TO DOCS FOLDER: The actual file is now in public/docs/...
+  const pdfUrl = `/docs/${pdfPath}`; 
 
   const [showReload, setShowReload] = useState(false);
 
   // Default heading from filename
   useEffect(() => {
-    const nameOnly = pdfName.split('/').pop()?.replace('.pdf', '').replace(/-/g, ' ') || "";
+    const nameOnly = pdfPath.split('/').pop()?.replace('.pdf', '').replace(/-/g, ' ') || "";
     setHeading(nameOnly.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '));
-  }, [pdfName]);
+  }, [pdfPath]);
 
   const resetTimeout = () => {
     setShowControls(true);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
       setShowControls(false);
-    }, 2500);
+    }, 2500) as any as number;
   };
 
   const navigateToPage = useCallback((dest: any) => {
@@ -110,15 +111,15 @@ export default function PdfViewer({
     window.addEventListener("touchstart", handleInteraction);
     window.addEventListener("scroll", handleInteraction);
 
-    let pollingInterval: NodeJS.Timeout | null = null;
-    let reloadTimer: NodeJS.Timeout | null = null;
+    let pollingInterval: number | null = null;
+    let reloadTimer: number | null = null;
     let listenersAttached = false;
     let attempts = 0;
 
     // Show reload option if loading takes too long
     reloadTimer = setTimeout(() => {
       if (isLoading) setShowReload(true);
-    }, 10000); // 10 seconds
+    }, 10000) as any as number; // 10 seconds
 
     const startPolling = () => {
       if (pollingInterval) return;
@@ -186,7 +187,7 @@ export default function PdfViewer({
               // Extract Heading
               try {
                 const title = currentApp.metadata?.get('dc:title') || currentApp.documentInfo?.Title;
-                if (title && title.trim() && title !== pdfName) {
+                if (title && title.trim() && title !== pdfPath) {
                   setHeading(title);
                 }
               } catch (e) { /* ignore */ }
@@ -221,7 +222,7 @@ export default function PdfViewer({
               setShowReload(true);
             }
           }
-        }, 100); // Check every 100ms for faster feedback
+        }, 100) as any as number; // Check every 100ms for faster feedback
     };
 
     // Start immediately and also on load as a fallback
@@ -239,7 +240,7 @@ export default function PdfViewer({
       if (pollingInterval) clearInterval(pollingInterval);
       if (reloadTimer) clearTimeout(reloadTimer);
     };
-  }, [pdfName]);
+  }, [pdfPath]);
 
   const itemsRender = (items: OutlineItem[], level = 0) => {
     return items.map((item, idx) => (
@@ -335,8 +336,10 @@ export default function PdfViewer({
   {/* Download Button — FIRST on mobile */}
   <button
     onClick={() => {
-      const downloadUrl = new URL(`${proxyUrl}?download=1`, window.location.origin).href;
-      window.location.assign(downloadUrl);
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      link.download = path[path.length - 1] || 'document.pdf';
+      link.click();
     }}
     className={`order-1 md:order-0
                p-2 rounded-full bg-[#2a2a2e] text-white shadow-xl
@@ -486,11 +489,12 @@ export default function PdfViewer({
         />
       )}
 
-      {/* PDF viewer */}
+
+      {/* PDF viewer - Using PDF.js for both mobile and desktop to support custom features like Topics navigation */}
       <iframe
-        key={pdfName}
+        key={pdfPath}
         ref={iframeRef}
-        src={`/pdfjs/web/viewer.html?file=${encodeURIComponent(proxyUrl)}#pagemode=none`}
+        src={`/pdfjs/web/viewer.html?file=${encodeURIComponent(pdfUrl)}#pagemode=none`}
         className={`absolute inset-y-0 right-0 h-full border-none z-0 transition-all duration-500 
           ${isSidebarExpanded ? "w-full md:w-[calc(100%-320px)]" : "w-full md:w-[calc(100%-60px)]"}`}
         title="PDF Viewer"

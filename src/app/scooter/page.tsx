@@ -43,12 +43,12 @@ export default function Scooter() {
               { img: "/scooter/activa125.png", alt: "activa125" },
               { img: "/scooter/dio125.png", alt: "dio125" },
             ].map((card, i) => {
-              const pdfPath = `scooter/${`honda-${card.alt.replace(/\s+/g, '_')}.pdf`}`;
+              const pdfPath = `pdf/scooter/${`honda-${card.alt.replace(/\s+/g, '_')}.pdf`}`;
               return (
               <Link
                   key={i}
-                  href={`/pdf/${pdfPath}`}
-                  onMouseEnter={() => prefetch(pdfPath)}
+                  href={`/pdf/${pdfPath.replace('pdf/', '')}`}
+                  onMouseEnter={() => prefetch(pdfPath.replace('pdf/', 'docs/'))}
                   onMouseLeave={cancelPrefetch}
                   className={`relative group
                            w-[85vw] sm:w-[70vw] md:w-[38vw] lg:w-[420px]

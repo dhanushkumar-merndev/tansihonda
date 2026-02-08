@@ -40,7 +40,7 @@ export default function Ev() {
             {/* CARD 1 */}
             <Link
               href="/pdf/ev/honda-activa-e.pdf"
-              onMouseEnter={() => prefetch("ev/honda-activa-e.pdf")}
+              onMouseEnter={() => prefetch("docs/ev/honda-activa-e.pdf")}
               onMouseLeave={cancelPrefetch}
               className="relative w-[85vw] md:w-[45vw] max-w-[600px]
                          h-[30dvh] lg:h-[360px]
@@ -68,7 +68,7 @@ export default function Ev() {
             {/* CARD 2 */}
             <Link
               href="/pdf/ev/honda-qc1.pdf"
-              onMouseEnter={() => prefetch("ev/honda-qc1.pdf")}
+              onMouseEnter={() => prefetch("docs/ev/honda-qc1.pdf")}
               onMouseLeave={cancelPrefetch}
               className="relative w-[85vw] md:w-[45vw] max-w-[600px]
                          h-[30dvh] lg:h-[360px]

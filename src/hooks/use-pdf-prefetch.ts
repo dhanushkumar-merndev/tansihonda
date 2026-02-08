@@ -8,13 +8,13 @@ import { useCallback, useRef } from 'react';
  */
 export function usePdfPrefetch() {
   const prefetchedUrls = useRef<Set<string>>(new Set());
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<number | null>(null);
 
   const prefetch = useCallback((path: string) => {
-    const proxyUrl = `/api/pdf-proxy/${path}`;
+    const pdfUrl = `/${path}`; // Direct path to public folder
     
     // Only prefetch once per session per URL
-    if (prefetchedUrls.current.has(proxyUrl)) return;
+    if (prefetchedUrls.current.has(pdfUrl)) return;
 
     // Clear any pending prefetch
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -22,12 +22,12 @@ export function usePdfPrefetch() {
     // Debounce: Wait 500ms before fetching
     timeoutRef.current = setTimeout(() => {
       // Use low priority fetch for prefetching
-      fetch(proxyUrl, { priority: 'low' })
+      fetch(pdfUrl, { priority: 'low' })
         .then(() => {
-          prefetchedUrls.current.add(proxyUrl);
+          prefetchedUrls.current.add(pdfUrl);
         })
         .catch(() => {});
-    }, 500);
+    }, 500) as any as number;
   }, []);
 
   const cancelPrefetch = useCallback(() => {
