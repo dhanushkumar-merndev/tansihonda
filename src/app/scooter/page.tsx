@@ -43,7 +43,7 @@ export default function Scooter() {
               { img: "/scooter/activa125.png", alt: "activa125" },
               { img: "/scooter/dio125.png", alt: "dio125" },
             ].map((card, i) => {
-              const pdfPath = `scooter/${card.alt.replace(/\s+/g, '_')}.pdf`;
+              const pdfPath = `scooter/${`honda-${card.alt.replace(/\s+/g, '_')}.pdf`}`;
               return (
               <Link
                   key={i}

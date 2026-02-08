@@ -49,7 +49,7 @@ export default function Motorcycle() {
               { img: "/motorcycle/sp160.png", alt: "sp160" },
               { img: "/motorcycle/unicorn.png", alt: "unicorn" },
             ].map((card, i) => {
-              const pdfPath = `motorcycle/${card.alt}.pdf`;
+              const pdfPath = `motorcycle/${`honda-${card.alt}`}.pdf`;
               return (
               <Link
                   key={i}
