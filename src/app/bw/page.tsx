@@ -38,11 +38,12 @@ export default function Scooter() {
 
             {/* CARD TEMPLATE */}
             {[
+             { img: "/bw/nx200.webp", alt: "nx200" },
               { img: "/bw/cb350.webp", alt: "cb350" },
               { img: "/bw/cb350hness.webp", alt: "cb350hness" },
               { img: "/bw/cb350rs.webp", alt: "cb350rs" },
               { img: "/bw/cbr650r.webp", alt: "cbr650r" },
-              { img: "/bw/nx200.webp", alt: "nx200" },
+             
             ].map((card, i) => {
               const pdfPath = `pdf/bw/${`honda-${card.alt.replace(/\s+/g, '_')}.pdf`}`;
               return (
