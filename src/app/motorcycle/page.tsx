@@ -38,16 +38,16 @@ export default function Motorcycle() {
 
             {/* CARD TEMPLATE */}
             {[
-              { img: "/motorcycle/cb125hornet.webp", alt: "cb125hornet" },
-              { img: "/motorcycle/Hornet2.0.webp", alt: "hornet2.0" },
-              { img: "/motorcycle/livo.webp", alt: "livo" },
-              { img: "/motorcycle/nx200.webp", alt: "nx200" },
               { img: "/motorcycle/shine100.webp", alt: "shine100" },
               { img: "/motorcycle/shine100dx.webp", alt: "shine100-dx" },
+              { img: "/motorcycle/livo.webp", alt: "livo" },
               { img: "/motorcycle/shine125.webp", alt: "shine125" },
               { img: "/motorcycle/sp125.webp", alt: "sp125" },
-              { img: "/motorcycle/sp160.webp", alt: "sp160" },
+              { img: "/motorcycle/cb125hornet.webp", alt: "cb125hornet" },
               { img: "/motorcycle/unicorn.webp", alt: "unicorn" },
+              { img: "/motorcycle/sp160.webp", alt: "sp160" },
+              { img: "/motorcycle/nx200.webp", alt: "nx200" },
+              { img: "/motorcycle/Hornet2.0.webp", alt: "hornet2.0" },
             ].map((card, i) => {
               const pdfPath = `pdf/motorcycle/${`honda-${card.alt}`}.pdf`;
               return (

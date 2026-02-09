@@ -38,8 +38,8 @@ export default function Scooter() {
 
             {/* CARD TEMPLATE */}
             {[
-              { img: "/scooter/dio110.webp", alt: "dio110" },
               { img: "/scooter/activa110.webp", alt: "activa110" },
+              { img: "/scooter/dio110.webp", alt: "dio110" },
               { img: "/scooter/activa125.webp", alt: "activa125" },
               { img: "/scooter/dio125.webp", alt: "dio125" },
             ].map((card, i) => {
