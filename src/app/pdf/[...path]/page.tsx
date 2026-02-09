@@ -306,6 +306,9 @@ export default function PdfViewer({
         }
       `}</style>
       
+      <link rel="preconnect" href={window.location.origin} />
+      <link rel="dns-prefetch" href={window.location.origin} />
+      
       {/* Top Bar: Back Button (Mobile only) */}
       <div className={`md:hidden absolute top-2 md:top-4 left-4 z-50 transition-all duration-500 ${showControls ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
         <button
@@ -494,7 +497,7 @@ export default function PdfViewer({
       <iframe
         key={pdfPath}
         ref={iframeRef}
-        src={`/pdfjs/web/viewer.html?file=${encodeURIComponent(pdfUrl)}#pagemode=none`}
+        src={`/pdfjs/web/viewer.html?file=${encodeURIComponent(pdfUrl)}#pagemode=none&disableAutoFetch=false&disableStream=false`}
         className={`absolute inset-y-0 right-0 h-full border-none z-0 transition-all duration-500 
           ${isSidebarExpanded ? "w-full md:w-[calc(100%-320px)]" : "w-full md:w-[calc(100%-60px)]"}`}
         title="PDF Viewer"

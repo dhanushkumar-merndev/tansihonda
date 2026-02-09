@@ -21,12 +21,29 @@ export function usePdfPrefetch() {
 
     // Debounce: Wait 500ms before fetching
     timeoutRef.current = setTimeout(() => {
-      // Use low priority fetch for prefetching
+      // 1. Prefetch the PDF file itself
       fetch(pdfUrl, { priority: 'low' })
         .then(() => {
           prefetchedUrls.current.add(pdfUrl);
         })
         .catch(() => {});
+
+      // 2. Prefetch PDF.js Viewer Assets (Critical for first-time load)
+      // These are only prefetched once per session
+      const viewerAssets = [
+        '/pdfjs/web/viewer.mjs',
+        '/pdfjs/build/pdf.worker.mjs',
+        '/pdfjs/build/pdf.mjs',
+        '/pdfjs/web/viewer.css'
+      ];
+
+      viewerAssets.forEach(asset => {
+        if (!prefetchedUrls.current.has(asset)) {
+          fetch(asset, { priority: 'low' })
+            .then(() => prefetchedUrls.current.add(asset))
+            .catch(() => {});
+        }
+      });
     }, 500) as any as number;
   }, []);
 
