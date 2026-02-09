@@ -43,7 +43,14 @@ const images = [
   "/contacts/White line.webp",
   "/contacts/Whitefield1.webp",
   "/contacts/number.webp",
-  "/contacts/tansi.webp"
+  "/contacts/tansi.webp",
+
+  // Big Wing
+  "/bw/cb350.webp",
+  "/bw/cb350hness.webp",
+  "/bw/cb350rs.webp",
+  "/bw/cbr650r.webp",
+  "/bw/nx200.webp",
 
 ];
 
