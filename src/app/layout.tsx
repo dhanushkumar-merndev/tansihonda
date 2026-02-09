@@ -1,9 +1,32 @@
- import type { Metadata } from "next";
+import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Tansi Digital Manuals",
   description: "Official Honda manuals and documents from Tansi Honda",
+
+  openGraph: {
+    title: "Tansi Digital Manuals",
+    description: "Official Honda Digital Manuals and Documents - Tansi Honda",
+    url: "https://tansihonda.vercel.app",
+    siteName: "Tansi Digital Manuals",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Tansi Digital Manuals",
+      },
+    ],
+    type: "website",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Tansi Digital Manuals",
+    description: "Official Honda Digital Manuals and Documents - Tansi Honda",
+    images: ["/og-image.png"],
+  },
 
   icons: {
     icon: [
@@ -16,7 +39,6 @@ export const metadata: Metadata = {
   manifest: "/site.webmanifest",
 };
 
-
 export default function RootLayout({
   children,
 }: {
@@ -24,9 +46,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="font-sans antialiased">
-        {children}
-      </body>
+      <body className="font-sans antialiased">{children}</body>
     </html>
   );
 }
