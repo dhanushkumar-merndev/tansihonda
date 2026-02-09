@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://tansihonda.vercel.app"),
   title: "Tansi Digital Manuals",
   description: "Official Honda manuals and documents from Tansi Honda",
 
@@ -13,8 +14,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: "/og-image.png",
-        width: 1200,
-        height: 630,
+        width: 800,
+        height: 800,
         alt: "Tansi Digital Manuals",
       },
     ],
