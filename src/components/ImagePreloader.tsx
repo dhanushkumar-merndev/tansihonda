@@ -51,6 +51,8 @@ const images = [
   "/bw/cb350rs.webp",
   "/bw/cbr650r.webp",
   "/bw/nx200.webp",
+  "/bw/footer.webp",
+  "/bw/logo.webp",
 
 ];
 
