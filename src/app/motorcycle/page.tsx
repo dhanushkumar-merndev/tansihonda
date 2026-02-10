@@ -13,7 +13,7 @@ export default function Motorcycle() {
 
         {/* TOP WHITE AREA */}
         <div className="absolute top-0 left-0 w-full h-[8vh] md:h-[10vh] bg-white overflow-hidden z-10">
-          <Link href="/" className="absolute top-2 right-4 w-[120px] md:w-[180px] h-full">
+          <Link href="/" className="absolute top-2 -right-4 w-[120px] md:w-[180px] h-full">
             <Image
               src="/logo.svg"
               alt="Logo"
