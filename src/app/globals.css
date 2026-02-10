@@ -121,19 +121,6 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    scrollbar-width: thin;
-    scrollbar-color: #ef4444 transparent;
-  }
-  *::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  *::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  *::-webkit-scrollbar-thumb {
-    background-color: #ef4444;
-    border-radius: 20px;
   }
   body {
     @apply bg-background text-foreground;
